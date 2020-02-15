@@ -241,5 +241,174 @@ last_name,
 birth_date
 FROM employees;
 
+-- Create a new file named 3.7_group_by_exercises.sql
+-- In your script, use DISTINCT to find the unique titles in the titles table. Your results should look like:
+
+SELECT DISTINCT title
+FROM titles;
+
+-- Find your query for employees whose last names start and end with 'E'. 
+--Update the query find just the unique last names that start and end with 'E' using GROUP BY. The results should be:
+
+SELECT last_name
+FROM employees
+WHERE last_name LIKE 'e%e'
+GROUP BY last_name;
 
 
+-- Update your previous query to now find unique combinations of first and last name where the last name starts and ends with 'E'. You should get 846 rows.
+
+SELECT first_name,
+last_name
+FROM employees
+WHERE last_name LIKE 'e%e'
+GROUP BY last_name, first_name;
+
+
+-- Find the unique last names with a 'q' but not 'qu'. Your results should be:
+
+SELECT last_name
+FROM employees
+WHERE last_name LIKE '%q%'
+AND last_name NOT LIKE '%qu%'
+GROUP BY last_name;
+
+
+-- Add a COUNT() to your results and use ORDER BY to make it easier to find employees whose unusual name is shared with others.
+
+SELECT last_name,
+COUNT(*)
+FROM employees
+WHERE last_name LIKE '%q%'
+AND last_name NOT LIKE '%qu%'
+GROUP BY last_name;
+
+-- Update your query for 'Irena', 'Vidya', or 'Maya'. Use COUNT(*) and GROUP BY to find the number of employees for each gender with those names. 
+
+SELECt gender,
+COUNT(*)
+FROM employees
+WHERE first_name IN ("Irena", "Vidya", "Maya")
+GROUP BY gender;
+
+-- Recall the query the generated usernames for the employees from the last lesson. Are there any duplicate usernames?
+
+SELECT 
+LOWER(CONCAT(LEFT(first_name,1), LEFT(last_name,4), "_", MID(birth_date,6,2), SUBSTR(birth_date,3,2))) AS username,
+COUNT(*) AS num_users
+FROM employees
+WHERE num_users > 1
+GROUP BY username;
+
+-- Bonus: how many duplicate usernames are there?
+SELECT 
+COUNT(LOWER(CONCAT(LEFT(first_name,1), LEFT(last_name,4), "_", MID(birth_date,6,2), SUBSTR(birth_date,3,2)))) - 
+COUNT(DISTINCT(LOWER(CONCAT(LEFT(first_name,1), LEFT(last_name,4), "_", MID(birth_date,6,2), SUBSTR(birth_date,3,2))))) AS duplicate_usernames
+FROM employees;
+
+
+-- write a query that shows each department along with the name of the current manager for that department.
+SELECT dept_name AS "Department Name",
+CONCAT(first_name, " ", last_name) AS "Department Manager"
+FROM departments
+JOIN dept_manager dm USING (dept_no)
+JOIN employees em USING (emp_no)
+WHERE dm.to_date > NOW()
+ORDER BY dept_name;
+
+-- Find the name of all departments currently managed by women.
+
+SELECT dept_name AS "Department Name",
+CONCAT(first_name, " ", last_name) AS "Manager Name"
+FROM departments
+JOIN dept_manager dm USING (dept_no)
+JOIN employees USING (emp_no)
+WHERE gender = "F"
+AND dm.to_date > NOW()
+ORDER BY dept_name;
+
+-- Find the current titles of employees currently working in the Customer Service department.
+
+SELECT title AS Title,
+COUNT(*)
+FROM dept_emp dem
+JOIN departments dep USING (dept_no)
+JOIN titles t USING (emp_no)
+WHERE dept_name = "Customer Service"
+AND t.to_date > NOW()
+GROUP BY title
+ORDER BY title;
+
+-- Find the current salary of all current managers.
+SELECT dept_name AS "Department Name",
+CONCAT (first_name, " ", last_name) as "Name",
+salary
+FROM employees emp
+JOIN dept_manager dm USING (emp_no)
+JOIN salaries sal USING (emp_no)
+JOIN departments dep USING (dept_no)
+WHERE sal.to_date > NOW()
+AND dm.to_date > NOW()
+ORDER BY dept_name;
+
+-- Find the number of employees in each department.
+SELECT dept_no,
+dept_name,
+COUNT(*)
+FROM departments
+JOIN dept_emp USING (dept_no)
+WHERE to_date > NOW()
+GROUP BY dept_no, dept_name;
+
+
+-- Which department has the highest average salary?
+
+SELECT dept_name,
+AVG(salary) AS average_salary
+FROM departments
+JOIN dept_emp USING (dept_no)
+JOIN salaries USING (emp_no)
+GROUP BY dept_name
+ORDER BY average_salary DESC
+LIMIT 1;
+
+-- Who is the highest paid employee in the Marketing department?
+SELECT first_name,
+last_name,
+MAX(salary) AS salary
+FROM employees emp
+JOIN salaries sal USING (emp_no)
+JOIN dept_emp dem USING (emp_no)
+JOIN departments USING (dept_no)
+WHERE dept_name = "Marketing"
+GROUP BY first_name, last_name
+ORDER BY salary DESC
+LIMIT 1;
+
+-- Which current department manager has the highest salary?
+
+SELECT first_name,
+last_name,
+MAX(salary) AS salary,
+dept_name
+FROM employees
+JOIN salaries sal USING (emp_no)
+JOIN dept_manager dm USING (emp_no)
+JOIN departments USING (dept_no)
+WHERE dm.to_date > NOW()
+GROUP BY first_name, last_name, dept_name
+ORDER BY salary DESC
+LIMIT 1;
+
+
+-- Bonus Find the names of all current employees, their department name, and their current manager's name.
+
+
+-- 240,124 Rows
+
+-- Employee Name | Department Name  |  Manager Name
+-- --------------|------------------|-----------------
+--  Huan Lortz   | Customer Service | Yuchang Weedman
+
+--  .....
+-- Bonus Find the highest paid employee in each department.
