@@ -1,0 +1,1 @@
+This folder is for all CODEUU test reviews. Consists of class excercises and a few outside sources.
