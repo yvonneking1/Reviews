@@ -401,14 +401,65 @@ ORDER BY salary DESC
 LIMIT 1;
 
 
--- Bonus Find the names of all current employees, their department name, and their current manager's name.
+-- Create a file named 3.8.3_subqueries_exercises.sql and craft queries to return the results for the following criteria:
+-- Find all the employees with the same hire date as employee 101010 using a sub-query
+Select *
+FROM employees
+WHERE hire_date = 
+(SELECT hire_date
+FROM employees
+WHERE emp_no = 101010);
+
+-- Find all the titles held by all employees with the first name Aamod.
+
+SELECT DISTINCT title
+FROM titles
+JOIN employees USING (emp_no)
+WHERE first_name IN
+    (SELECT first_name
+    FROM employees
+    WHERE first_name = "Aamod");
 
 
--- 240,124 Rows
 
--- Employee Name | Department Name  |  Manager Name
--- --------------|------------------|-----------------
---  Huan Lortz   | Customer Service | Yuchang Weedman
+-- How many people in the employees table are no longer working for the company?
 
---  .....
--- Bonus Find the highest paid employee in each department.
+SELECT COUNT(*)
+FROM employees
+WHERE emp_no IN
+    (SELECT emp_no
+    FROM dept_emp
+    WHERE to_date < NOW()
+    GROUP BY emp_no);
+
+
+-- Find all the current department managers that are female.
+SELECT first_name,
+last_name
+FROM employees
+WHERE gender = "F" 
+AND emp_no IN
+    (SELECT emp_no
+    FROM dept_manager
+    WHERE to_date > NOW());
+
+-- Find all the employees that currently have a higher than average salary.
+
+SELECT first_name,
+last_name,
+salary
+FROM employees
+JOIN salaries USING (emp_no)
+WHERE salary > 
+    (SELECT AVG(salary)
+    FROM salaries)
+AND to_date > CURDATE();
+
+-- How many current salaries are within 1 standard deviation of the highest salary? (Hint: you can use a built in function to calculate the standard deviation.) 
+-- What percentage of all salaries is this?
+SELECT *
+FROM salaries
+WHERE to_date > CURDATE()
+AND salary >=
+(SELECT MAX(salary) - STD(salary)
+FROM salaries);
